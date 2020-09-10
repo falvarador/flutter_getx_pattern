@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:meta/meta.dart' show required;
 import 'package:getx_pattern_demo/app/data/models/request_token.dart';
-import 'package:getx_pattern_demo/app/data/providers/auth_provider.dart';
+import 'package:getx_pattern_demo/app/data/providers/remote/auth_provider.dart';
 
 class AuthRepository {
   final AuthProvider _provider = Get.find<AuthProvider>();

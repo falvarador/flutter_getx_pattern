@@ -1,45 +1,38 @@
-import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/state_manager.dart';
-import 'package:getx_pattern_demo/app/data/models/request_token.dart';
-import 'package:getx_pattern_demo/app/data/repositories/auth_repository.dart';
-import 'package:getx_pattern_demo/app/global_widgets%20/error_alert_dialog.dart';
+import 'package:getx_pattern_demo/app/data/models/movie.dart';
+import 'package:getx_pattern_demo/app/data/repositories/local/local_auth_repository.dart';
+import 'package:getx_pattern_demo/app/data/repositories/remote/movie_repository.dart';
+import 'package:getx_pattern_demo/app/routes/app_routes.dart';
 
 class HomeController extends GetxController {
-  final AuthRepository _repository = Get.find<AuthRepository>();
+  final LocalAuthRepository _localAuthRepository =
+      Get.find<LocalAuthRepository>();
 
-  String _username = '', _password = '';
+  final MovieRepository _movieRepository = Get.find<MovieRepository>();
 
-  void onUserNameChanged(String value) {
-    _username = value;
+  List<Movie> _movies = [];
+  List<Movie> get movies => _movies;
+
+  Future<void> logOut() async {
+    await _localAuthRepository.clearSession();
+
+    Get.offNamedUntil(AppRoutes.LOGIN, (route) => false);
   }
 
-  void onUserPasswordChanged(String value) {
-    _password = value;
-  }
-
-  Future<void> submit() async {
+  Future<void> _loadTopMovies() async {
     try {
-      RequestToken requestToken = await _repository.newRequestToken();
+      _movies = await _movieRepository.getTopMovie();
+      print("Total de películas: ${_movies.length}");
 
-      final RequestToken authRequestToken = await _repository.validateWithLogin(
-          username: _username,
-          password: _password,
-          requestToken: requestToken.requestToken);
-
-      print("login ok");
+      update();
     } catch (e) {
-      String message = "";
-
-      if (e is DioError) {
-        if (e.response != null) {
-          message = e.response.statusMessage;
-        } else {
-          message = e.message;
-        }
-      }
-      Get.dialog(ErrorAlertDialog(message: message));
+      print(e);
     }
+  }
+
+  @override
+  void onReady() {
+    _loadTopMovies();
   }
 }
